@@ -47,6 +47,7 @@ class Shop(Business):
         orders['quantity'] = tempquantity
         print(orders)
         
+        
         self.producer.days.insert(0,orders)
 
 class Dc(Business):
@@ -91,15 +92,16 @@ class Dc(Business):
             
             self.producer[i].order_queue.insert(0,[dc_orders,30,unit])
             for j in range(len(dc_orders)):
-                self.profit = self.profit - ((math.pow(beta,self.producer[i].n)*self.itemlist[i].price[0])*dc_orders[j]['quantity'])  
+                self.profit = self.profit - ((math.pow(beta,self.producer[i].n)*self.itemlist[i].price[0])*dc_orders[j]['quantity']) 
             self.producer[i].cap.append(self.producer[i].capacity)                
             # return 1    
 
         else :
             print("No!!!!")
             self.producer[i].capacity =self.producer[i].capacity + unit
-            self.producer[i].cap.append(self.producer[i].capacity)
+            self.producer[i].cap.append(self.producer[i].capacity)  
             # return 0
+
 
     def response(self):
         dc_store = np.zeros(len(self.itemlist), dtype={'names':('item','quantity'),'formats':('U10','i4')}) 
@@ -159,132 +161,107 @@ class Supplier(Business):
             self.consumer.product_queue.insert(0,self.product_queue[0])
             print('supplier')
             self.product_queue.pop()    
-
-
-
-class FooEnv(gym.Env):
-  metadata = {'render.modes': ['human']}
-
-  def __init__(self):
-    self.state = None
-    self.done = False
-    self.reward = 0
-    self.min = 0
-    self.max = 9
-    self.cap1 = 2
-    self.cap2 = 10
-    self.cap3 = 2
-    self._seed()
-    self.low = np.zeros(85)
-    self.high = np.zeros(85)
-    self.high[0] = 730
-    self.high[1:8]=self.cap1
-    self.high[8:15] = self.cap2
-    self.high[15:22] = self.cap3
-    self.high[22:] =self.max
-    self.action_space = spaces.Box(low=self.min, high=self.max, shape=(9,), dtype=np.int32)
-    self.observation_space = spaces.Box(low=self.low ,high=self.high , dtype=np.float32)
+class AllBusiness:
+    def reset_test(self):
+        self.itemA = Item('a',40)
+        self.itemB = Item('b',30)
+        self.itemC = Item('c',15)
+        self.itemlist = [self.itemA,self.itemB,self.itemC]
+        self.dc = Dc(self.itemlist)
+        self.shop_1 =Shop(self.itemlist)
+        self.shop_2 = Shop(self.itemlist)
+        self.shop_3 = Shop(self.itemlist)
+        self.supplier_1 = Supplier(2)
+        self.supplier_2 = Supplier(10)
+        self.supplier_3 = Supplier(2)
+        self.shop_1.Producer(self.dc)
+        self.shop_2.Producer(self.dc)
+        self.shop_3.Producer(self.dc)
+        self.supplier_1.Consumer(self.dc)
+        self.supplier_2.Consumer(self.dc)
+        self.supplier_3.Consumer(self.dc)
+        self.dc.Consumer([self.shop_1,self.shop_2,self.shop_3])
+        self.dc.Producer([self.supplier_1,self.supplier_2,self.supplier_3])
+        self.dc.generate_queue()
+        self.days = 0
+    def order(self):
+        self.shop_1.order()
+        self.shop_2 .order()
+        self.shop_3.order()
+        self.dc.manage_order()
+        # self.dc.order()
+    def process(self):
+        self.supplier_1.process()
+        self.supplier_2.process()
+        self.supplier_3.process()
+    def response(self):
+        self.supplier_1.response()
+        self.supplier_2.response()
+        self.supplier_3.response()
+        self.dc.response()
+    def numbers_to_strings(self,argument): 
+        switcher = { 
+            0: 2, 
+            1: 10, 
+            2: 2, 
+        } 
     
-    
+        return switcher.get(argument, "nothing") 
 
-  def _step(self, action): 
-    self.day+=1
-    self.itemA.price_days(PRICE)
-    self.itemB.price_days(PRICE)
-    self.itemC.price_days(PRICE)
-    self.order()
-    temp = []
-    count = 0
-    for x in range(3):
-        temp.append(action[count:count+3])
-        count+=3
 
-    for i in range(len(self.dc.producer)):
-        print('ooooo',temp[i])
-        self.dc.order(temp[i],i)   
-    self.process()
-    self.response()
-    self.reward =self.dc.profit
-    tempstate = []
-    tempstate = tempstate+[self.day]
-    for supply in range(len(self.dc.producer)):
-        if len(self.dc.producer[supply].cap) <7:
-            sum =7-len(self.dc.producer[supply].cap)
-            tempstate = tempstate + self.dc.producer[supply].cap
-            for number in range(sum):
-                tempstate.append(self.numbers_to_strings(supply))
-        else :
-            tempstate = tempstate + self.dc.producer[supply].cap[self.day-7:self.day+1]
-    
-    for demand in range(len(self.dc.consumer)):
-        if len(self.dc.consumer[demand].order_queue) < 21:
-            sum = 21 - len(self.dc.consumer[demand].order_queue)
-            tempstate = tempstate + self.dc.consumer[demand].order_queue
-            for zero in range(sum):
-                tempstate.append(0)
-        else :
-            tempstate = tempstate + self.dc.consumer[demand].order_queue[(self.day-7)*3:(self.day*3)+1]
 
-    self.state = np.array(tempstate)
-    
-    print(self.state)
-    print('days',self.day)
-    return self.state, self.reward, self.done, {}
-    # return np.array(self.state), self.reward, self.done, {}
 
-  def _seed(self, seed=None):
-    self.np_random, seed = seeding.np_random(seed)
-    return [seed]
 
-  def _reset(self):
-    self.itemA = Item('a',40)
-    self.itemB = Item('b',30)
-    self.itemC = Item('c',15)
-    self.itemlist = [self.itemA,self.itemB,self.itemC]
-    self.dc = Dc(self.itemlist)
-    self.shop_1 =Shop(self.itemlist)
-    self.shop_2 = Shop(self.itemlist)
-    self.shop_3 = Shop(self.itemlist)
-    self.supplier_1 = Supplier(2)
-    self.supplier_2 = Supplier(10)
-    self.supplier_3 = Supplier(2)
-    self.shop_1.Producer(self.dc)
-    self.shop_2.Producer(self.dc)
-    self.shop_3.Producer(self.dc)
-    self.supplier_1.Consumer(self.dc)
-    self.supplier_2.Consumer(self.dc)
-    self.supplier_3.Consumer(self.dc)
-    self.dc.Consumer([self.shop_1,self.shop_2,self.shop_3])
-    self.dc.Producer([self.supplier_1,self.supplier_2,self.supplier_3])
-    self.dc.generate_queue()
-    self.day = 0
-   
-    self.state = np.zeros(85)
-    self.state[1:8]=self.cap1
-    self.state[8:15] = self.cap2
-    self.state[15:22] = self.cap3
-    return np.array(self.state)
-  def _render(self, mode='human', close=False):
-    ...
-  def order(self):
-    self.shop_1.order()
-    self.shop_2 .order()
-    self.shop_3.order()
-    self.dc.manage_order()
-  def process(self):
-    self.supplier_1.process()
-    self.supplier_2.process()
-    self.supplier_3.process()
-  def response(self):
-    self.supplier_1.response()
-    self.supplier_2.response()
-    self.supplier_3.response()
-    self.dc.response()
-  def numbers_to_strings(self,argument): 
-    switcher = { 
-        0: 2, 
-        1: 10, 
-        2: 2, 
-    } 
+x = AllBusiness()
+for j in range(2):
+    x.reset_test()
+    for i in range(10) :
+        x.days+=1
+        x.itemA.price_days(PRICE)
 
-    return switcher.get(argument, "nothing") 
+        x.itemB.price_days(PRICE)
+        x.itemC.price_days(PRICE)
+
+        print("days",x.days)
+        x.order()
+        for c in range(len(x.dc.producer)):
+            tempquantity =[]
+            for j in range(len(x.itemlist)): 
+                quantity = random.randint(0,9)
+                tempquantity.append(quantity)
+            
+            x.dc.order(tempquantity,c) 
+        temp =[]
+        temp = temp+[x.days]
+        for supply in range(len(x.dc.producer)):
+            if len(x.dc.producer[supply].cap) <7:
+                sum =7-len(x.dc.producer[supply].cap)
+                temp = temp + x.dc.producer[supply].cap
+                for number in range(sum):
+                    temp.append(x.numbers_to_strings(supply))
+            else :
+                temp = temp + x.dc.producer[supply].cap[x.days-7:x.days+1]
+        
+        for demand in range(len(x.dc.consumer)):
+            if len(x.dc.consumer[demand].order_queue) < 21:
+                sum = 21 - len(x.dc.consumer[demand].order_queue)
+                temp = temp + x.dc.consumer[demand].order_queue
+                for zero in range(sum):
+                    temp.append(0)
+            else :
+                temp = temp + x.dc.consumer[demand].order_queue[(x.days-7)*3:(x.days*3)+1]
+        print('sum',sum)           
+        # for count in range(len(x.shop_1.order_queue)):
+        #     temp = temp+x.shop_1.order_queue[count]
+        print(temp)
+        # print(x.dc.producer[0].cap)
+        # print(x.supplier_2.cap)
+        # print(x.supplier_3.cap)
+        # print(x.shop_1.order_queue)
+        # print(x.shop_2.order_queue) 
+        # print(x.shop_3.order_queue) 
+        x.process()
+        x.response()
+
+
+  
