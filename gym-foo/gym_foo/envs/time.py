@@ -232,10 +232,9 @@ class FooEnv(gym.Env):
 
     self.state = np.array(tempstate)
     
-    # print(self.state)
+    print(self.state)
     # print('days',self.day)
     # return self.state, self.reward, self.done, {}
-    self._render()
     return np.array(self.state), self.reward, self.done, {}
 
   def _seed(self, seed=None):
@@ -271,7 +270,7 @@ class FooEnv(gym.Env):
     self.state[15:22] = self.numbers_to_strings(2)
     return np.array(self.state)
   def _render(self, mode='human', close=False):
-    print('render')
+    ...
   def order(self):
     self.shop_1.order(0)
     self.shop_2 .order(1)

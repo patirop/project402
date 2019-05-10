@@ -120,6 +120,12 @@ class supplier(business):
         else :
             self.consumer.product_queue.insert(0,"nope")        
 
+
+
+
+
+   
+
 class AllBusiness:
     def order(self):
         shop_1.order()
@@ -140,6 +146,8 @@ class AllBusiness:
 a = item('a',40)
 b = item('b',30)
 c = item('c',15)
+
+
 dc = dc()
 shop_1 =shop()
 shop_2 = shop()
@@ -148,14 +156,18 @@ supplier_1 = supplier(2)
 supplier_2 = supplier(10)
 supplier_3 = supplier(2)
 item = [a,b,c]
+
 shop_1.Producer(dc)
 shop_2.Producer(dc)
 shop_3.Producer(dc)
+
 dc.Consumer([shop_1,shop_2,shop_3])
 dc.Producer([supplier_1,supplier_2,supplier_3])
+
 supplier_1.Consumer(dc)
 supplier_2.Consumer(dc)
 supplier_3.Consumer(dc)
+
 dc.generate_queue()
 
 for i in range(5) :

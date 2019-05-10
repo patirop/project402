@@ -5,6 +5,7 @@ import random
 import datetime
 import numpy as np  
 import math   
+from gym.envs.classic_control import rendering
 beta =2  
 PRICE = 10
 
@@ -31,16 +32,18 @@ class Shop(Business):
         self.n=2
         self.itemlist = item
         
-    def order(self):
+    def order(self,index):
         
         orders = np.zeros(len(self.itemlist), dtype={'names':('item','quantity'),'formats':('U10','i4')}) 
         
+        
         tempname =[]
-        tempquantity =[]
+        tempquantity = self.Constant_order(index)
+
         for i in range(len(self.itemlist)): 
-            quantity = random.randint(0,9)
+            quantity = tempquantity[i]
             tempname.append(self.itemlist[i].name)
-            tempquantity.append(quantity)
+            # tempquantity.append(quantity)
             self.order_queue.append(quantity)
             self.producer.profit = self.producer.profit + ((math.pow(beta,self.n)*self.itemlist[i].price[0])*quantity)
         orders['item'] = tempname
@@ -49,6 +52,15 @@ class Shop(Business):
         
         
         self.producer.days.insert(0,orders)
+
+    def Constant_order(self,argument): 
+        switcher = { 
+            0: [3,4,5], 
+            1: [4,5,6], 
+            2: [7,8,9], 
+        } 
+    
+        return switcher.get(argument, "nothing") 
 
 class Dc(Business):
     def __init__(self,item):
@@ -109,7 +121,7 @@ class Dc(Business):
         for count_item in range(len(self.itemlist)): 
             tempname.append(self.itemlist[count_item].name)               
         dc_store['item'] = tempname
-        print(self.profit)
+        # print(self.profit)
         if len(self.product_queue) >0: 
             # ถ้ามีของจาก supllier
             for i in range(len(self.product_queue)):
@@ -117,17 +129,17 @@ class Dc(Business):
                 for j in range(len(dc_store)):
                     dc_store[j]['quantity']=dc_store[j]['quantity'] + self.product_queue[i]['quantity'][j]
             self.product_queue.clear()
-        print(dc_store)
+        # print(dc_store)
         for i in range(len(self.consumer)):
             for j in range(len(dc_store)):
                 dc_store[j]['quantity']=dc_store[j]['quantity'] - self.shop_queue[i][0]['quantity'][j]
-        print(dc_store)
+        # print(dc_store)
         for check in range(len(dc_store)):
             
             if dc_store[check]['quantity'] <0:
                 self.gotomarket(dc_store)
                 break
-        print(self.profit)
+        # print(self.profit)
         for i in range(len(self.consumer)):
             self.consumer[i].product_queue.insert(0,self.shop_queue[i].pop())
 
@@ -185,9 +197,9 @@ class AllBusiness:
         self.dc.generate_queue()
         self.days = 0
     def order(self):
-        self.shop_1.order()
-        self.shop_2 .order()
-        self.shop_3.order()
+        self.shop_1.order(0)
+        self.shop_2 .order(1)
+        self.shop_3.order(2)
         self.dc.manage_order()
         # self.dc.order()
     def process(self):
@@ -212,10 +224,11 @@ class AllBusiness:
 
 
 
+
 x = AllBusiness()
 for j in range(2):
     x.reset_test()
-    for i in range(10) :
+    for i in range(5) :
         x.days+=1
         x.itemA.price_days(PRICE)
 
