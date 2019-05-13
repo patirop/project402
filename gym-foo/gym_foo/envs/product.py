@@ -46,6 +46,7 @@ class Shop(Business):
         orders['item'] = tempname
         orders['quantity'] = tempquantity
         # print(orders)
+        # print(self.producer.profit)
         
         self.producer.days.insert(0,orders)
 
@@ -97,7 +98,7 @@ class Dc(Business):
         if self.producer[i].capacity >=0 :
             # print("yes")
             
-            self.producer[i].order_queue.insert(0,[dc_orders,30,unit])
+            self.producer[i].order_queue.insert(0,[dc_orders,10,unit])
             for j in range(len(dc_orders)):
                 self.profit = self.profit - ((math.pow(beta,self.producer[i].n)*self.itemlist[i].price[0])*dc_orders[j]['quantity'])  
             self.producer[i].cap.append(self.producer[i].capacity)                
@@ -171,10 +172,14 @@ class Supplier(Business):
 
 
 class FooEnv(gym.Env):
-  metadata = {'render.modes': ['human']}
+  metadata = {
+    'render.modes': ['human', 'rgb_array'],
+    'video.frames_per_second': 30}
+
+
 
   def __init__(self):
-    self.state = None
+    # self.state = None
     self.done = False
     self.reward = 0
     self.min = 0
@@ -231,11 +236,14 @@ class FooEnv(gym.Env):
             tempstate = tempstate + self.dc.consumer[demand].order_queue[(self.day-7)*3:(self.day*3)+1]
 
     self.state = np.array(tempstate)
-    
+    # print('day',self.day,'action',action)
+    # print('reward',self.reward)
+    # if self.day == 30 :
+    #     print('reward',self.reward)
     # print(self.state)
     # print('days',self.day)
     # return self.state, self.reward, self.done, {}
-    self._render()
+    
     return np.array(self.state), self.reward, self.done, {}
 
   def _seed(self, seed=None):
@@ -243,9 +251,9 @@ class FooEnv(gym.Env):
     return [seed]
 
   def _reset(self):
-    self.itemA = Item('a',40)
-    self.itemB = Item('b',30)
-    self.itemC = Item('c',15)
+    self.itemA = Item('a',1)
+    self.itemB = Item('b',1)
+    self.itemC = Item('c',1)
     self.itemlist = [self.itemA,self.itemB,self.itemC]
     self.dc = Dc(self.itemlist)
     self.shop_1 =Shop(self.itemlist)
@@ -271,7 +279,8 @@ class FooEnv(gym.Env):
     self.state[15:22] = self.numbers_to_strings(2)
     return np.array(self.state)
   def _render(self, mode='human', close=False):
-    print('render')
+    """ test render"""
+    print(self.state)
   def order(self):
     self.shop_1.order(0)
     self.shop_2 .order(1)

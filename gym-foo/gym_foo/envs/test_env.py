@@ -49,15 +49,16 @@ class Shop(Business):
         orders['item'] = tempname
         orders['quantity'] = tempquantity
         print(orders)
+        # print(self.producer.profit)
         
         
         self.producer.days.insert(0,orders)
 
     def Constant_order(self,argument): 
         switcher = { 
-            0: [3,4,5], 
-            1: [4,5,6], 
-            2: [7,8,9], 
+            0: [4,3,2], 
+            1: [4,6,6], 
+            2: [8,9,8], 
         } 
     
         return switcher.get(argument, "nothing") 
@@ -96,20 +97,19 @@ class Dc(Business):
         for count in range(len(dc_orders)):
             unit = unit + (dc_orders[count]['quantity']/self.itemlist[count].unit)
         
-
         self.producer[i].capacity =self.producer[i].capacity - unit
         
         if self.producer[i].capacity >=0 :
-            print("yes")
+            # print("yes")
             
-            self.producer[i].order_queue.insert(0,[dc_orders,30,unit])
+            self.producer[i].order_queue.insert(0,[dc_orders,10,unit])
             for j in range(len(dc_orders)):
                 self.profit = self.profit - ((math.pow(beta,self.producer[i].n)*self.itemlist[i].price[0])*dc_orders[j]['quantity']) 
             self.producer[i].cap.append(self.producer[i].capacity)                
             # return 1    
 
         else :
-            print("No!!!!")
+            # print("No!!!!")
             self.producer[i].capacity =self.producer[i].capacity + unit
             self.producer[i].cap.append(self.producer[i].capacity)  
             # return 0
@@ -144,7 +144,7 @@ class Dc(Business):
             self.consumer[i].product_queue.insert(0,self.shop_queue[i].pop())
 
     def gotomarket(self,amount):
-        print('market')       
+        # print('market')       
         for i  in range(len(amount)):
             if amount[i]['quantity'] <0 :
                 # print(abs(amount[i]['quantity']))
@@ -175,9 +175,9 @@ class Supplier(Business):
             self.product_queue.pop()    
 class AllBusiness:
     def reset_test(self):
-        self.itemA = Item('a',40)
-        self.itemB = Item('b',30)
-        self.itemC = Item('c',15)
+        self.itemA = Item('a',1)
+        self.itemB = Item('b',1)
+        self.itemC = Item('c',1)
         self.itemlist = [self.itemA,self.itemB,self.itemC]
         self.dc = Dc(self.itemlist)
         self.shop_1 =Shop(self.itemlist)
@@ -228,7 +228,7 @@ class AllBusiness:
 x = AllBusiness()
 for j in range(2):
     x.reset_test()
-    for i in range(5) :
+    for i in range(2) :
         x.days+=1
         x.itemA.price_days(PRICE)
 
@@ -263,10 +263,10 @@ for j in range(2):
                     temp.append(0)
             else :
                 temp = temp + x.dc.consumer[demand].order_queue[(x.days-7)*3:(x.days*3)+1]
-        print('sum',sum)           
+        # print('sum',sum)           
         # for count in range(len(x.shop_1.order_queue)):
         #     temp = temp+x.shop_1.order_queue[count]
-        print(temp)
+        # print(temp)
         # print(x.dc.producer[0].cap)
         # print(x.supplier_2.cap)
         # print(x.supplier_3.cap)
@@ -275,6 +275,7 @@ for j in range(2):
         # print(x.shop_3.order_queue) 
         x.process()
         x.response()
+        print(x.dc.profit)
 
 
   
