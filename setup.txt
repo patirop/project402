@@ -1,3 +1,9 @@
+การสร้าง env 
+Ref https://medium.com/@apoddar573/making-your-own-custom-environment-in-gym-c3b65ff8cdaa
+
+openai spinning up 
+https://spinningup.openai.com/en/latest/
+
 
 Set up env
 
