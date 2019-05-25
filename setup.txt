@@ -1,0 +1,11 @@
+
+Set up env
+
+cd gym-foo
+pip install -e .
+
+
+train env
+
+python3 train_env.py 
+

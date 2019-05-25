@@ -48,7 +48,7 @@ class Shop(Business):
 
     def Constant_order(self,argument): 
         switcher = { 
-            0: [5], 
+            0: [5],  # จำนวนการสั่งของ class shop เพราะทดลอง เป็น constant เลยกำหนด
             1: [0,0,0], 
             2: [0,0,0], 
         } 
@@ -78,10 +78,10 @@ class Dc(Business):
             self.shop_number = self.shop_number + self.shop_queue[index_profit][0]['quantity']# คำนวณจำนวน สินค้าของ shop
 
     def order(self,action):
-        x1 = action.split(" ")        
-        quantity =[]
-        for action_index in range(1):
-            quantity.append(int(x1[action_index]))
+        # x1 = action.split(" ")        
+        # quantity =[]
+        # for action_index in range(1):
+        #     quantity.append(int(x1[action_index]))
      
 
         for i in range(len(self.producer)):
@@ -95,11 +95,11 @@ class Dc(Business):
                 tempname.append(self.itemlist[count_item].name)
     
             dc_orders['item'] = tempname
-            dc_orders['quantity'] = quantity
+            dc_orders['quantity'] = action
             
             # print('supplier',i,'dc order',dc_orders)           
-            for index_quantity in range(len(quantity)):
-                if quantity[index_quantity] < 0:
+            for index_quantity in range(len(action)):
+                if action[index_quantity] < 0:
                     check = 1
                     break
 
@@ -112,15 +112,10 @@ class Dc(Business):
                 
                 if self.producer[i].capacity >=0 :
                     # print("yes") 
-                    self.producer[i].order_queue.insert(0,[dc_orders,1,unit])
+                    self.producer[i].order_queue.insert(0,[dc_orders,1,unit]) # สั่งของ ไปยัง supply  1 = ค่า delay ที่จะได้รับของ 
                     self.supply_number = self.supply_number + dc_orders['quantity']# คำนวณสจำนวนสินค้าที่ส่งไปยัง supply 
                
-                    # if self.shop_number[0] == self.supply_number[0]:
-                    #     self.profit = 1
-                    # else :
-                    #     self.profit=-1
-                        
-                    # return 1    
+                       
 
                 else :
                     # print("No!!!!")
@@ -167,24 +162,7 @@ class Dc(Business):
         if self.profit >= 0:
             self.profit = self.calculate(self.shop_number,2)  -   ( self.market_number+ self.calculate(self.supply_number,-1))
         
-        # if self.supply_number[0]-self.shop_number[0] <0:
-    
-        #     self.market_number = self.shop_number[0]-self.supply_number[0]
-        #     for cali in range(len(self.itemlist)):
-        #         self.market_number = ((math.pow(beta,0)*self.itemlist[cali].price[0])*self.market_number)
-        #     self.reward_state = self.calculate(self.shop_number,2)  - self.market_number-self.calculate(self.supply_number,-1)
-
-        # elif self.supply_number[0]-self.shop_number[0] ==0 :
-        #     self.reward_state = self.calculate(self.shop_number,2)
-        # else :
-        #     self.market_number = 0
-        #     self.supply_number[0]= self.supply_number[0]-self.shop_number[0]
-        #     self.reward_state= self.calculate(self.shop_number,2)  - self.market_number-self.calculate(self.supply_number,-1)
         
-        
-        # print("shop",self.calculate(self.shop_number,2))
-        # print('market',self.market_number)
-        # print('supply',self.calculate(self.supply_number,-1))
         for i in range(len(self.consumer)):
             self.consumer[i].product_queue.insert(0,self.shop_queue[i].pop())
         self.shop_number = np.zeros(1)
@@ -272,27 +250,9 @@ class FooEnv(gym.Env):
 
         tempstate = []
         tempstate = tempstate+[5]+[5]+self.shop_1.tempquantity
-        # tempstate = []
-        # tempstate = tempstate+[self.seven_day]+[self.supplier_1.capacity]+self.shop_1.tempquantity
-        # dc_store = np.zeros(1, dtype={'names':('item','quantity'),'formats':('U10','i4')})
-        # dc_store['item'] = ['a']
-        # dc_store['quantity'] =action
-        # tempstate = []
-        # tempstate = tempstate+[self.seven_day]+[0]+[5]
-
-        # if dc_store['quantity'][0] == 5 :
-        #     self.reward = 1
-        # else:
-        #     self.reward =-1
-
-
-        # if dc_store['quantity'][0] > 17  and dc_store['quantity'][0] < 19:
-        #     self.reward = 100000
-        # else:
-        #     self.reward =-100000        
-        # self.reward = self.dc.calculate(self.dc.shop_number,2)  - self.dc.market_number - self.dc.calculate(self.dc.supply_number,-1)    
         
-        self.state = np.array(tempstate)
+        
+        self.state = np.array(tempstate) #  state ตอนนี้ มี [5,5,5] ค่าของ จำนวน การสั่งของ shop ของ [ อดีต, ปัจจุบัน , อนาคต ] แต่เพราะทดลอง เป็น constant เลยกำหนดค่าไปเลย
         # print('day',self.day,'action',action)
 
         if self.day == 1000:

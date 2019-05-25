@@ -1,0 +1,2 @@
+Spinup --> https://github.com/openai/spinningup.git
+gym==0.10.9
