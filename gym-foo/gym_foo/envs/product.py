@@ -350,18 +350,22 @@ class FooEnv(gym.Env):
     for i in range(7):
         # data2.append(self.profit[i])
         su1.append(self.state[i])
-        su2.append(self.state[i+7])
-        su3.append(self.state[i+14])
+        # su2.append(self.state[i+7])
+        # su3.append(self.state[i+14])
+        su2.append(0)
+        su3.append(0)
+    print("su1", su1)
     data1.append(su1)
     data1.append(su2)
     data1.append(su3)
 
-    for i in self.profit:
-        data2.append(i)
+    # for i in self.profit:
+    #     data2.append(i)
     # data2.append(self.dc.profit)
     # print(data1,"\n")
+    data2.append(self.dc.profit)
     print(self.dc.profit)
-    print(self.profit)
+    # print(self.profit)
 
     sio.emit('channel_b', json.dumps(data))
     sio.emit('channel_c', json.dumps(data1))
