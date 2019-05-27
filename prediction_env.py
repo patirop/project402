@@ -36,7 +36,8 @@ class Shop(Business):
         orders = np.zeros(len(self.itemlist), dtype={'names':('item','quantity'),'formats':('U10','i4')}) 
         
         tempname =[]
-        self.tempquantity =self.Constant_order(index)
+        # self.tempquantity =self.Constant_order(index)
+        self.tempquantity =[float(index)]
         for i in range(len(self.itemlist)): 
             tempname.append(self.itemlist[i].name)
 
@@ -232,6 +233,7 @@ class FooEnv(gym.Env):
         self.reward = 0
         self.min = 0
         self.max = 9
+        self.total_reward = 0
         
         self.low = np.ones(3)
         self.high = np.ones(3)
@@ -265,11 +267,15 @@ class FooEnv(gym.Env):
         
         
         self.state = np.array(tempstate) #  state ตอนนี้ มี [5,5,5] ค่าของ จำนวน การสั่งของ shop ของ [ อดีต, ปัจจุบัน , อนาคต ] แต่เพราะทดลอง เป็น constant g]
-        print('day',self.day,'action',action)
+        # print('day',self.day,'action',action)
 
-        if self.day == 100 or self.day ==101:
-            # print('dc_store',dc_store['quantity'][0])
-            print(f'\nstate : {self.state} / action : {action} / reward: {self.reward}\n')
+        # if self.day == 100 or self.day ==101:
+        #     # print('dc_store',dc_store['quantity'][0])
+
+        self.total_reward += self.reward
+
+        print('day',self.day)
+        print(f'\nstate: {self.state} / action: {action} / reward: {self.reward} / total reward: {self.total_reward}\n')
 
             
 
@@ -278,7 +284,7 @@ class FooEnv(gym.Env):
 
     # return self.state, self.reward, self.done, {}
 
-        print('reward',self.reward)
+        # print('reward',self.reward)
 
 
         return np.array(self.state), self.reward, self.done, {}
@@ -318,7 +324,7 @@ class FooEnv(gym.Env):
         """ test render"""
         print(self.state)
     def order(self):
-        self.shop_1.order(0)
+        # self.shop_1.order(0)
         # self.shop_2 .order(1)
         # self.shop_3.order(2)
         self.dc.manage_order()
@@ -346,6 +352,20 @@ message = f.read()
 lst = message.split()
 lst[0] = lst[0][1:]
 lst[-1] = lst[-1][:-1]
+f.close()
+f= open('randomforest_realdata.txt','r')
+real_data = f.read()
+lst_real_data = real_data.split()
+lst_real_data[0] = lst_real_data[0][1:]
+lst_real_data[-1] = lst_real_data[-1][:-1]
+f.close()
+
+a = []
+for o in range(len(lst_real_data)):
+    a.append(lst_real_data[o].replace('[','').replace(']',''))
+
+a = list(filter(None,a))
+print(type(a[0]))
 
 
 
@@ -356,9 +376,9 @@ for j in range(1):
 
         
         # x.seven_days +=1
-
-
-
+        if i !=0:
+            x.shop_1.order(a[i])
+        x.shop_1.order('20')
 
         
         # input_action = input('order ?')
