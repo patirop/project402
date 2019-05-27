@@ -4,7 +4,8 @@ from gym.utils import seeding
 import random
 import datetime
 import numpy as np  
-import math   
+import math  
+
 beta =2 
 PRICE = 10
 
@@ -48,7 +49,7 @@ class Shop(Business):
 
     def Constant_order(self,argument): 
         switcher = { 
-            0: [5],  # จำนวนการสั่งของ class shop เพราะทดลอง เป็น constant เลยกำหนด
+            0: [20],  # จำนวนการสั่งของ class shop เพราะทดลอง เป็น constant เลยกำหนด
             1: [0,0,0], 
             2: [0,0,0], 
         } 
@@ -80,12 +81,12 @@ class Dc(Business):
             self.shop_number = self.shop_number + self.shop_queue[index_profit][0]['quantity']# คำนวณจำนวน สินค้าของ shop
 
     def order(self,action):
-        # x1 = action.split(" ")        
-        # quantity =[]
-        # for action_index in range(1):
-        #     quantity.append(int(x1[action_index]))
+        x1 = action.split(" ")        
+        quantity =[]
+        for action_index in range(1):
+            quantity.append(float(x1[action_index]))
      
-        action[0] = abs(action[0])
+
         for i in range(len(self.producer)):
             check = 0
             unit= 0
@@ -97,11 +98,11 @@ class Dc(Business):
                 tempname.append(self.itemlist[count_item].name)
     
             dc_orders['item'] = tempname
-            dc_orders['quantity'] = action
+            dc_orders['quantity'] = quantity
             
             # print('supplier',i,'dc order',dc_orders)           
-            for index_quantity in range(len(action)):
-                if action[index_quantity] < 0:
+            for index_quantity in range(len(quantity)):
+                if quantity[index_quantity] < 0:
                     check = 1
                     break
 
@@ -234,10 +235,11 @@ class FooEnv(gym.Env):
         
         self.low = np.ones(3)
         self.high = np.ones(3)
-        self.high[0:] = 9
-        self.high[1]=5
+        # self.high[0:] = 9
+        # self.high[1]=5
         
-        self.action_space = spaces.Box(low=-self.max, high=self.max, shape=(1,), dtype=np.float32)
+        
+        self.action_space = spaces.Box(low=self.min, high=self.max, shape=(1,), dtype=np.float32)
         # self.action_space = spaces.Box(low=self.min, high=self.max, shape=(1,), dtype=np.float32)
         self.observation_space = spaces.Box(low=self.low ,high=self.high , dtype=np.float32)
 
@@ -263,7 +265,7 @@ class FooEnv(gym.Env):
         
         
         self.state = np.array(tempstate) #  state ตอนนี้ มี [5,5,5] ค่าของ จำนวน การสั่งของ shop ของ [ อดีต, ปัจจุบัน , อนาคต ] แต่เพราะทดลอง เป็น constant g]
-        # print('day',self.day,'action',action)
+        print('day',self.day,'action',action)
 
         if self.day == 100 or self.day ==101:
             # print('dc_store',dc_store['quantity'][0])
@@ -275,8 +277,8 @@ class FooEnv(gym.Env):
             self.seven_day =0
 
     # return self.state, self.reward, self.done, {}
-        # print('action',action)
-        # print('reward',self.reward)
+
+        print('reward',self.reward)
 
 
         return np.array(self.state), self.reward, self.done, {}
@@ -339,29 +341,27 @@ class FooEnv(gym.Env):
         return switcher.get(argument, "nothing") 
  
 
+f= open('randomforest.txt','r')
+message = f.read()
+lst = message.split()
+lst[0] = lst[0][1:]
+lst[-1] = lst[-1][:-1]
 
 
-# x = FooEnv()
-# for j in range(2):
-#     x.reset()
-#     for i in range(30) :
+
+x = FooEnv()
+for j in range(1):
+    x.reset()
+    for i in range(len(lst)) :
 
         
-#         # x.seven_days +=1
+        # x.seven_days +=1
 
 
-#         print("days",x.day)
+
 
         
-#         input_action = input('order ?')
+        # input_action = input('order ?')
 
-#         print(x.step(input_action) )
+        x.step(lst[i]) 
 
-#         # temp =[]
-#         # temp = temp+[x.seven_days]+[x.supplier_1.capacity]+x.shop_1.tempquantity
-#         # if x.seven_days  == 7 :
-#         #     x.seven_days =0
-
-
-#         # print('state',temp)
-#         # print('reward',x.dc.profit)
