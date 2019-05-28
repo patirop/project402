@@ -42,7 +42,8 @@ class Shop(Business):
         orders = np.zeros(len(self.itemlist), dtype={'names':('item','quantity'),'formats':('U10','i4')}) 
         
         tempname =[]
-        self.tempquantity =self.Constant_order(index)
+        # self.tempquantity =self.Constant_order(index)
+        self.tempquantity =[float(index)]
         for i in range(len(self.itemlist)): 
             tempname.append(self.itemlist[i].name)
 
@@ -64,7 +65,6 @@ class Shop(Business):
 class Dc(Business):
     def __init__(self,item):
         self.profit = 0
-        self.capacity_perday=0
         self.reward_state = 0
         self.shop_number = np.zeros(1)
         self.market_number = 0
@@ -124,7 +124,7 @@ class Dc(Business):
                     # print("yes") 
                     self.producer[i].order_queue.insert(0,[dc_orders,1,unit]) # สั่งของ ไปยัง supply  1 = ค่า delay ที่จะได้รับของ 
                     self.supply_number = self.supply_number + dc_orders['quantity']# คำนวณสจำนวนสินค้าที่ส่งไปยัง supply 
-                    self.capacity_perday = self.producer[i].capacity
+               
                        
 
                 else :
@@ -239,6 +239,9 @@ class FooEnv(gym.Env):
         self.reward = 0
         self.min = 0
         self.max = 9
+        self.total_reward = 0
+        self.action = 0
+        
         
         self.low = np.ones(3)
         self.high = np.ones(3)
@@ -251,10 +254,6 @@ class FooEnv(gym.Env):
         self.observation_space = spaces.Box(low=self.low ,high=self.high , dtype=np.float32)
 
         self.seed()
-        self.action = 0
-        self.data = ['item1']
-        self.data1 = ['supply1']
-        self.data2 = ['profit']
 
     def step(self, action): 
         self.day+=1
@@ -273,15 +272,19 @@ class FooEnv(gym.Env):
         self.reward =self.dc.profit
 
         tempstate = []
-        tempstate = tempstate+[self.seven_day]+[self.dc.capacity_perday]+self.shop_1.tempquantity
+        tempstate = tempstate+[float(self.shop_1.tempquantity[0])]+[float(self.dc.income_supply)]+[float(self.dc.income_market)]
         
         
         self.state = np.array(tempstate) #  state ตอนนี้ มี [5,5,5] ค่าของ จำนวน การสั่งของ shop ของ [ อดีต, ปัจจุบัน , อนาคต ] แต่เพราะทดลอง เป็น constant g]
-        print('day',self.day,'action',action)
+        # print('day',self.day,'action',action)
 
-        if self.day == 100 or self.day ==101:
-            # print('dc_store',dc_store['quantity'][0])
-            print(f'\nstate : {self.state} / action : {action} / reward: {self.reward}\n')
+        # if self.day == 100 or self.day ==101:
+        #     # print('dc_store',dc_store['quantity'][0])
+
+        self.total_reward += self.reward
+
+        print('day',self.day)
+        print(f'\nstate: {self.state} / action: {action} / reward: {self.reward} / total reward: {self.total_reward}\n')
 
             
 
@@ -290,7 +293,7 @@ class FooEnv(gym.Env):
 
     # return self.state, self.reward, self.done, {}
 
-        print('reward',self.reward)
+        # print('reward',self.reward)
 
 
         return np.array(self.state), self.reward, self.done, {}
@@ -329,16 +332,17 @@ class FooEnv(gym.Env):
     def render(self, mode='human', close=False):
         """ test render"""
         print(self.state)
+        print(self.state)
         # data = ['item1']
         item = ['item1']
         item.append(self.state[2])
-        self.data.append(self.state[2])
+        # self.data.append(self.state[2])
         print(item)
 
         # data1 = ['supply1']
         supply = ['supply1']
         supply.append(self.state[1])
-        self.data1.append(self.state[1])
+        # self.data1.append(self.state[1])
         print(supply)
  
         # data2 = ['profit']
@@ -351,15 +355,14 @@ class FooEnv(gym.Env):
         data3.append(dc)
         print(data3)
 
-        self.data2.append(self.dc.profit)
+        # self.data2.append(self.dc.profit)
         print(self.dc.profit)
         sio.emit('channel_b', json.dumps(data3))
         sio.emit('channel_c', json.dumps(supply))
         sio.emit('channel_d', json.dumps(profit))
 
-
     def order(self):
-        self.shop_1.order(0)
+        # self.shop_1.order(0)
         # self.shop_2 .order(1)
         # self.shop_3.order(2)
         self.dc.manage_order()
@@ -387,19 +390,37 @@ message = f.read()
 lst = message.split()
 lst[0] = lst[0][1:]
 lst[-1] = lst[-1][:-1]
+f.close()
+f= open('randomforest_realdata.txt','r')
+real_data = f.read()
+lst_real_data = real_data.split()
+lst_real_data[0] = lst_real_data[0][1:]
+lst_real_data[-1] = lst_real_data[-1][:-1]
+f.close()
+
+a = []
+for o in range(len(lst_real_data)):
+    a.append(lst_real_data[o].replace('[','').replace(']',''))
+
+a = list(filter(None,a))
+print(type(a[0]))
 
 
 
 x = FooEnv()
+for j in range(1):
+    x.reset()
+    for i in range(len(lst)) :
 
-x.reset()
-for i in range(len(lst)) :
-    # x.seven_days +=1
-    # input_action = input('order ?')
-    x.step(lst[i])
-    x.render()
-    time.sleep(2)
         
+        # x.seven_days +=1
+        if i !=0:
+            x.shop_1.order(a[i])
+        x.shop_1.order('20')
 
+        
+        # input_action = input('order ?')
 
-
+        x.step(lst[i]) 
+        x.render()
+        time.sleep(2)
