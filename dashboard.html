@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Supply Chain Management</title>
+
+    <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+    
+    <!-- Load c3.css -->
+    <link href="http://localhost:8888/static/c3.css" rel="stylesheet">
+    <!-- Load d3.js and c3.js -->
+    <script src="http://localhost:8888/static/d3.min.js" charset="utf-8"></script>
+    <script src="http://localhost:8888/static/c3.min.js"></script>
+
+
+    <script src="http://localhost:8888/static/socket.io.js"></script>
+    
+    <!-- UIkit CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.1.4/css/uikit.min.css" />
+    <!-- UIkit JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.1.4/js/uikit.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.1.4/js/uikit-icons.min.js"></script>
+</head>
+<body>
+    
+    <div class="uk-width-2-3 uk-align-center uk-margin-top">
+        <h2 class="uk-text-lead "> Supply Chain Management with Deep Learning</h2>
+        <div class="uk-flex uk-height-medium uk-margin">
+            <div class="uk-width-1-1 uk-margin">
+                <p>Order</p>
+
+                <div id="chart1"></div> 
+                
+            </div>
+
+            <div class="uk-width-1-1 uk-margin">
+                <p>Supplier Capacity</p>
+                <div id="chart2"></div>
+            </div>
+        </div>
+        <div class="uk-height-medium uk-margin ">
+            <p>DC Profit</p>
+            <div id="chart3"></div>
+        </div>
+        
+    </div>
+    <script>
+       /* var data = {
+            x : 'x',
+            columns: [
+                 ['x', '2019-01-01', '2019-01-02', '2019-01-03', '2019-01-04', '2019-01-05', '2019-01-06', '2019-01-07'],
+                ['item1', 19, 14, 15, 12, 13, 9, 10],
+                ['item2', 16, 20, 11, 13, 14, 4, 20],
+                ['item3', 20, 9, 18, 14, 11, 9, 19], 
+            ],
+        }*/
+
+        var chart = c3.generate({
+            bindto: '#chart1',
+            data : {
+                x : 'x',
+                columns: [
+                    ['x', '1', '2', '3', '4', '5', '6', '7'],
+                    ['item1', 0,0,0,0,0,0,0],
+                    ['dcorder', 0,0,0,0,0,0,0],
+                    
+                ],
+                type: 'bar',
+            },
+            axis: {
+                x: {
+                    label: 'Day',
+                },
+                y: {
+                    label: 'Amount'
+                }
+            },
+            color: {
+                pattern: ['#6980d4','#67b4a3']
+            }
+          });
+
+          var chart1 = c3.generate({
+            bindto: '#chart2',
+            data: {
+              x: 'x',
+              columns: [
+                  ['x', '1', '2', '3', '4', '5', '6', '7'],
+                  ['supply1', 0,0,0,0,0,0,0],
+                ],
+                type: 'bar',
+            },
+            axis: {
+              x: {
+                  label: 'Day',
+              },
+              y: {
+                  label: 'Square Metre'
+              }
+          },
+          color: {
+              pattern: ['#e13a42']
+          }
+           
+          }); 
+
+          var chart2 = c3.generate({
+            bindto: '#chart3',
+            data: {
+                x: 'x',
+                columns: [
+                    ['x', '1', '2', '3', '4', '5', '6', '7'],    
+                    ['profit', 0,0,0,0,0,0,0],
+
+                ],
+            },
+            axis: {
+              x: {
+                  label:'Day',
+              },
+              y: {
+                  label:'Bath'
+              }
+            },
+            color: {
+              pattern: ['#e13a42']
+          }
+          }); 
+
+        var socket = io("http://localhost:9999");
+        socket.on('channel_b', function(d){
+            data=JSON.parse(d)
+            /*console.log(data);*/
+            chart.flow({
+                columns: data,
+            });
+        });
+        socket.on('channel_c', function(d){
+            data=JSON.parse(d)
+            console.log(data);
+            chart1.flow({
+                columns: [data],
+            });
+        });
+        socket.on('channel_d', function(d){
+            data=JSON.parse(d)
+            console.log(data);
+            chart2.flow({
+                columns: [data],
+            });
+        });
+        
+    
+
+    
+</script>
+
+<body>
+
+</html>

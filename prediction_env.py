@@ -5,9 +5,15 @@ import random
 import datetime
 import numpy as np  
 import math  
+import socketio
+import json
+import time
 
 beta =2 
 PRICE = 10
+
+sio = socketio.Client()
+sio.connect("http://localhost:9999")
 
 class Item :
     def __init__(self,name,unit):
@@ -234,6 +240,8 @@ class FooEnv(gym.Env):
         self.min = 0
         self.max = 9
         self.total_reward = 0
+        self.action = 0
+        
         
         self.low = np.ones(3)
         self.high = np.ones(3)
@@ -254,6 +262,7 @@ class FooEnv(gym.Env):
         self.itemB.price_days(PRICE)
         self.itemC.price_days(PRICE)
         self.order()
+        self.action = action
 
 
         self.dc.order(action)  
@@ -323,6 +332,35 @@ class FooEnv(gym.Env):
     def render(self, mode='human', close=False):
         """ test render"""
         print(self.state)
+        print(self.state)
+        # data = ['item1']
+        item = ['item1']
+        item.append(self.state[2])
+        # self.data.append(self.state[2])
+        print(item)
+
+        # data1 = ['supply1']
+        supply = ['supply1']
+        supply.append(self.state[1])
+        # self.data1.append(self.state[1])
+        print(supply)
+ 
+        # data2 = ['profit']
+        profit = ['profit']
+        dc = ['dcorder']
+        data3 = []
+        profit.append(self.dc.profit)
+        dc.append(self.action)
+        data3.append(item)
+        data3.append(dc)
+        print(data3)
+
+        # self.data2.append(self.dc.profit)
+        print(self.dc.profit)
+        sio.emit('channel_b', json.dumps(data3))
+        sio.emit('channel_c', json.dumps(supply))
+        sio.emit('channel_d', json.dumps(profit))
+
     def order(self):
         # self.shop_1.order(0)
         # self.shop_2 .order(1)
@@ -384,4 +422,5 @@ for j in range(1):
         # input_action = input('order ?')
 
         x.step(lst[i]) 
-
+        x.render()
+        time.sleep(2)

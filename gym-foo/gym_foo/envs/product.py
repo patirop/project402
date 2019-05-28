@@ -5,8 +5,14 @@ import random
 import datetime
 import numpy as np  
 import math   
-beta =2 
+import socketio
+import json
+
+beta =2  
 PRICE = 10
+
+sio = socketio.Client()
+sio.connect("http://localhost:8888")
 
 class Item :
     def __init__(self,name,unit):
@@ -58,6 +64,7 @@ class Dc(Business):
     def __init__(self,item):
         self.profit = 0
         self.reward_state = 0
+        self.capacity_perday=0
         self.shop_number = np.zeros(1)
         self.market_number = 0
         self.supply_number = np.zeros(1)
@@ -116,7 +123,7 @@ class Dc(Business):
                     # print("yes") 
                     self.producer[i].order_queue.insert(0,[dc_orders,1,unit]) # สั่งของ ไปยัง supply  1 = ค่า delay ที่จะได้รับของ 
                     self.supply_number = self.supply_number + dc_orders['quantity']# คำนวณสจำนวนสินค้าที่ส่งไปยัง supply 
-               
+                    self.capacity_perday = self.producer[i].capacity
                        
 
                 else :
@@ -237,11 +244,12 @@ class FooEnv(gym.Env):
         self.high[0:] = 9
         self.high[1]=5
         
-        self.action_space = spaces.Box(low=-self.max, high=self.max, shape=(1,), dtype=np.float32)
+        self.action_space = spaces.Box(low=self.min, high=self.max, shape=(1,), dtype=np.float32)
         # self.action_space = spaces.Box(low=self.min, high=self.max, shape=(1,), dtype=np.float32)
         self.observation_space = spaces.Box(low=self.low ,high=self.high , dtype=np.float32)
 
         self.seed()
+        self.action = 0.0
 
     def step(self, action): 
         self.day+=1
@@ -250,6 +258,7 @@ class FooEnv(gym.Env):
         self.itemB.price_days(PRICE)
         self.itemC.price_days(PRICE)
         self.order()
+        self.action = action[0]
 
 
         self.dc.order(action)  
@@ -259,7 +268,7 @@ class FooEnv(gym.Env):
         self.reward =self.dc.profit
 
         tempstate = []
-        tempstate = tempstate+[float(self.shop_1.tempquantity[0])]+[float(self.dc.income_supply)]+[float(self.dc.income_market)]
+        tempstate = tempstate+[self.seven_day]+[self.dc.capacity_perday]+self.shop_1.tempquantity
         
         
         self.state = np.array(tempstate) #  state ตอนนี้ มี [5,5,5] ค่าของ จำนวน การสั่งของ shop ของ [ อดีต, ปัจจุบัน , อนาคต ] แต่เพราะทดลอง เป็น constant g]
@@ -313,8 +322,30 @@ class FooEnv(gym.Env):
         
         return np.array(self.state)
     def render(self, mode='human', close=False):
-        """ test render"""
-        print(self.state)
+        item = ['item1']
+        dc = ['dcorder']
+        data = []
+        item.append(self.state[2])
+        dc.append(str(self.action))
+        data.append(item)
+        data.append(dc)
+        print(data)
+
+        data1 = ['supply1']
+        data1.append(self.state[1])
+        print(data1)
+ 
+        data2 = ['profit']
+        data2.append(self.dc.profit)
+        print(self.dc.profit)
+
+
+        sio.emit('channel_b', json.dumps(data))
+        sio.emit('channel_c', json.dumps(data1))
+        sio.emit('channel_d', json.dumps(data2))
+
+
+
     def order(self):
         self.shop_1.order(0)
         # self.shop_2 .order(1)
