@@ -29,7 +29,7 @@
         <h2 class="uk-text-lead "> Supply Chain Management with Deep Learning</h2>
         <div class="uk-flex uk-height-medium uk-margin">
             <div class="uk-width-1-1 uk-margin">
-                <p>Shop Order</p>
+                <p>Order</p>
 
                 <div id="chart1"></div> 
                 
@@ -63,9 +63,9 @@
                 x : 'x',
                 columns: [
                     ['x', '1', '2', '3', '4', '5', '6', '7'],
-                    ['item1', 19, 14, 15, 12, 13, 9, 10],
-                    ['item2', 16, 20, 11, 13, 14, 4, 20],
-                    ['item3', 20, 9, 18, 14, 11, 9, 19], 
+                    ['item1', 0,0,0,0,0,0,0],
+                    ['dcorder', 0,0,0,0,0,0,0],
+                    
                 ],
                 type: 'bar',
             },
@@ -78,7 +78,7 @@
                 }
             },
             color: {
-                pattern: ['	#6980d4','#453cab','#67b4a3']
+                pattern: ['#6980d4','#67b4a3']
             }
           });
 
@@ -88,9 +88,7 @@
               x: 'x',
               columns: [
                   ['x', '1', '2', '3', '4', '5', '6', '7'],
-                  ['supply1', 1.4, 1.0166666666666666, 0.75, 0.4416666666666667, 0.22500000000000003, 0.22499999999999998, 0.22499999999999998],
-                  ['supply2', 9.466666666666667, 8.608333333333334, 8.266666666666667, 7.566666666666667, 6.583333333333334, 6.000000000000001, 5.2666666666666675],
-                  ['supply3', 1.4916666666666667, 1.2833333333333334, 0.9833333333333334, 0.6583333333333334, 0.6583333333333334, 0.3500000000000001, 0.3500000000000001],
+                  ['supply1', 0,0,0,0,0,0,0],
                 ],
                 type: 'bar',
             },
@@ -103,7 +101,7 @@
               }
           },
           color: {
-              pattern: ['#e13a42','#a26d41','	#025b83']
+              pattern: ['#e13a42']
           }
            
           }); 
@@ -115,6 +113,7 @@
                 columns: [
                     ['x', '1', '2', '3', '4', '5', '6', '7'],    
                     ['profit', 0,0,0,0,0,0,0],
+
                 ],
             },
             axis: {
@@ -130,19 +129,19 @@
           }
           }); 
 
-        var socket = io("http://localhost:8888");
+        var socket = io("http://localhost:9999");
         socket.on('channel_b', function(d){
             data=JSON.parse(d)
             /*console.log(data);*/
-            chart.load({
+            chart.flow({
                 columns: data,
             });
         });
         socket.on('channel_c', function(d){
             data=JSON.parse(d)
             console.log(data);
-            chart1.load({
-                columns: data,
+            chart1.flow({
+                columns: [data],
             });
         });
         socket.on('channel_d', function(d){

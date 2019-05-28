@@ -29,7 +29,7 @@ class Shop(Business):
     def __init__(self,item):
         self.product_queue = list()
         self.order_queue = list()
-        self.n=2
+        # self.n=2
         self.itemlist = item
         
     def order(self,index):
@@ -45,10 +45,10 @@ class Shop(Business):
             tempname.append(self.itemlist[i].name)
             # tempquantity.append(quantity)
             self.order_queue.append(quantity)
-            self.producer.profit = self.producer.profit + ((math.pow(beta,self.n)*self.itemlist[i].price[0])*quantity)
+            # self.producer.shop_number = self.producer.shop_number + ((math.pow(beta,self.n)*self.itemlist[i].price[0])*quantity)
         orders['item'] = tempname
         orders['quantity'] = tempquantity
-        print(orders)
+        # print('shop order',orders)
         # print(self.producer.profit)
         
         
@@ -56,9 +56,9 @@ class Shop(Business):
 
     def Constant_order(self,argument): 
         switcher = { 
-            0: [4,3,2], 
-            1: [4,6,6], 
-            2: [8,9,8], 
+            0: [3,4,5], 
+            1: [4,5,6], 
+            2: [7,8,9], 
         } 
     
         return switcher.get(argument, "nothing") 
@@ -66,6 +66,9 @@ class Shop(Business):
 class Dc(Business):
     def __init__(self,item):
         self.profit = 0
+        self.shop_number = np.zeros(3)
+        self.market_number = 0
+        self.supply_number = np.zeros(3)
         self.product_queue = list()
         self.shop_queue = []
         self.days = list()
@@ -78,42 +81,76 @@ class Dc(Business):
     def manage_order(self):
         for consumer_i in range(len(self.shop_queue)):
             self.shop_queue[consumer_i].insert(0,self.days.pop())
-    def order(self,quantity,i):
-
-        # for i in range(len(self.producer)):
-        unit= 0
-        dc_orders = np.zeros(len(self.itemlist), dtype={'names':('item','quantity'),'formats':('U10','i4')}) 
-        tempname =[]
-        # tempquantity =[]
-        for count_item in range(len(self.itemlist)): 
-            # quantity = random.randint(5,20) # ai 
-            tempname.append(self.itemlist[count_item].name)
-            # tempquantity.append(quantity)     
-        dc_orders['item'] = tempname
-        dc_orders['quantity'] = quantity
-        # print(dc_orders)
-
-
-        for count in range(len(dc_orders)):
-            unit = unit + (dc_orders[count]['quantity']/self.itemlist[count].unit)
         
-        self.producer[i].capacity =self.producer[i].capacity - unit
+        for index_profit in range(len(self.itemlist)):
+            self.shop_number = self.shop_number + self.shop_queue[index_profit][0]['quantity']# คำนวณ สินค้าของ shop
         
-        if self.producer[i].capacity >=0 :
-            # print("yes")
+        
+    def order(self,quantity):
+
+        x1 = quantity.split(" ")        
+        action =[]
+        for action_index in range(9):
+            action.append(int(x1[action_index]))
+        count_action = 0
+        for i in range(len(self.producer)):
             
-            self.producer[i].order_queue.insert(0,[dc_orders,10,unit])
-            for j in range(len(dc_orders)):
-                self.profit = self.profit - ((math.pow(beta,self.producer[i].n)*self.itemlist[i].price[0])*dc_orders[j]['quantity']) 
-            self.producer[i].cap.append(self.producer[i].capacity)                
-            # return 1    
+            check = 0
+            unit= 0
+            dc_orders = np.zeros(len(self.itemlist), dtype={'names':('item','quantity'),'formats':('U10','i4')}) 
+            tempname =[]
+            tempquantity =[]
+            tempquantity = action[count_action:count_action+3]
+            for count_item in range(len(self.itemlist)): 
+                tempname.append(self.itemlist[count_item].name) 
+            # print('-------------------------------------')
+            dc_orders['item'] = tempname
+            dc_orders['quantity'] = tempquantity
+            # print('supplier',i,'dc order',dc_orders)
+            
+            for index_quantity in range(len(tempquantity)):
+                if tempquantity[index_quantity] < 0:
+                    check = 1
+                    break
+                # elif tempquantity[0] == 0 & tempquantity[1] == 0 & tempquantity[2] == 0:
+                #     check =1
+                #     break
 
-        else :
-            # print("No!!!!")
-            self.producer[i].capacity =self.producer[i].capacity + unit
-            self.producer[i].cap.append(self.producer[i].capacity)  
-            # return 0
+            if check == 0:
+                for count in range(len(dc_orders)):
+                    unit = unit + (dc_orders[count]['quantity']/self.itemlist[count].unit)
+                
+                self.producer[i].capacity =self.producer[i].capacity - unit
+                
+                if self.producer[i].capacity >=0 :
+                    print("yes")
+                    # print('supplier',i,'capacity',self.producer[i].capacity)
+                    
+                    self.producer[i].order_queue.insert(0,[dc_orders,10,unit])
 
+                    
+                    self.supply_number = self.supply_number + dc_orders['quantity']# คำนวณสินค้า ของที่ส่งไปยัง supply
+                    # for j in range(len(dc_orders)):
+                    #     self.supply_number  = self.supply_number  + ((math.pow(beta,self.producer[i].n)*self.itemlist[i].price[0])*dc_orders[j]['quantity']) 
+                    self.producer[i].cap.append(self.producer[i].capacity)  
+                    
+                    # print('-------------------------------------')
+                    # return 1    
+
+                else :
+                    print("No!!!!")
+                    # print('supplier',i,'capacity',self.producer[i].capacity)
+                    
+                    self.producer[i].capacity =self.producer[i].capacity + unit
+                    self.producer[i].cap.append(self.producer[i].capacity)  
+                    # print('-------------------------------------')
+                    # return 0
+            else :
+                print("No!!!!")
+                # print('supplier',i,'capacity',self.producer[i].capacity)
+                self.producer[i].cap.append(self.producer[i].capacity)  
+                # print('-------------------------------------')
+            count_action+=3
 
     def response(self):
         dc_store = np.zeros(len(self.itemlist), dtype={'names':('item','quantity'),'formats':('U10','i4')}) 
@@ -121,7 +158,7 @@ class Dc(Business):
         for count_item in range(len(self.itemlist)): 
             tempname.append(self.itemlist[count_item].name)               
         dc_store['item'] = tempname
-        # print(self.profit)
+        
         if len(self.product_queue) >0: 
             # ถ้ามีของจาก supllier
             for i in range(len(self.product_queue)):
@@ -129,27 +166,52 @@ class Dc(Business):
                 for j in range(len(dc_store)):
                     dc_store[j]['quantity']=dc_store[j]['quantity'] + self.product_queue[i]['quantity'][j]
             self.product_queue.clear()
-        # print(dc_store)
+        # print('dc store from supply',dc_store)
         for i in range(len(self.consumer)):
             for j in range(len(dc_store)):
                 dc_store[j]['quantity']=dc_store[j]['quantity'] - self.shop_queue[i][0]['quantity'][j]
-        # print(dc_store)
+        # print('dc store',dc_store)
+        
+
         for check in range(len(dc_store)):
             
             if dc_store[check]['quantity'] <0:
                 self.gotomarket(dc_store)
                 break
-        # print(self.profit)
+        
+
+        
+        # คำนวณหากำไร รายวัน 
+        self.profit = self.calculate(self.shop_number,2)  - self.market_number - self.calculate(self.supply_number,-1)
+
+        print('shop ',self.calculate(self.shop_number,2))
+        print('market',self.market_number)
+        
+
+        # print('shop',self.shop_number)
+        # print('market',self.market_number)
+        print('supply',self.calculate(self.supply_number,-1))
+        print('profit',self.profit)
         for i in range(len(self.consumer)):
             self.consumer[i].product_queue.insert(0,self.shop_queue[i].pop())
+
+        self.shop_number = np.zeros(3)
+        self.market_number = 0
+        self.supply_number = np.zeros(3)
 
     def gotomarket(self,amount):
         # print('market')       
         for i  in range(len(amount)):
             if amount[i]['quantity'] <0 :
                 # print(abs(amount[i]['quantity']))
-                self.profit = self.profit - ((math.pow(beta,self.n)*self.itemlist[i].price[0])*abs(amount[i]['quantity']))
+                self.market_number = self.market_number + ((math.pow(beta,self.n)*self.itemlist[i].price[0])*abs(amount[i]['quantity']))
         return amount
+
+    def calculate(self,order,setn):
+        sum = 0
+        for cal in range(len(self.itemlist)):
+            sum =sum + ((math.pow(beta,setn)*self.itemlist[cal].price[0])*order[cal])
+        return sum
 
 class Supplier(Business):
     def __init__(self,capacity):
@@ -157,16 +219,17 @@ class Supplier(Business):
         self.order_queue = list()
         self.product_queue = list()
         self.cap =list()
-        self.n = -1
+        # self.n = -1
     def process(self):
         if len(self.order_queue) >0 :
             for i in range(len(self.order_queue)):
-                # print(self.order_queue[i][0])
+                # print('supply order',self.order_queue[i][0],'delay',self.order_queue[i][1])
                 self.order_queue[i][1] = self.order_queue[i][1] -1
-                if self.order_queue[i][1] == -1:
-                    self.capacity = self.capacity + self.order_queue[i][2]
+                if self.order_queue[i][1] == -1:    
                     self.product_queue.insert(0,self.order_queue[i][0])
                     self.order_queue.pop()
+                elif self.order_queue[i][1] == 0:
+                     self.capacity = self.capacity + self.order_queue[i][2]
         
     def response(self):
         if len(self.product_queue) >0:
@@ -183,9 +246,9 @@ class AllBusiness:
         self.shop_1 =Shop(self.itemlist)
         self.shop_2 = Shop(self.itemlist)
         self.shop_3 = Shop(self.itemlist)
-        self.supplier_1 = Supplier(2)
-        self.supplier_2 = Supplier(10)
-        self.supplier_3 = Supplier(2)
+        self.supplier_1 = Supplier(120)
+        self.supplier_2 = Supplier(150)
+        self.supplier_3 = Supplier(240)
         self.shop_1.Producer(self.dc)
         self.shop_2.Producer(self.dc)
         self.shop_3.Producer(self.dc)
@@ -213,9 +276,9 @@ class AllBusiness:
         self.dc.response()
     def numbers_to_strings(self,argument): 
         switcher = { 
-            0: 2, 
-            1: 10, 
-            2: 2, 
+            0: 120, 
+            1: 150, 
+            2: 240, 
         } 
     
         return switcher.get(argument, "nothing") 
@@ -228,7 +291,8 @@ class AllBusiness:
 x = AllBusiness()
 for j in range(2):
     x.reset_test()
-    for i in range(2) :
+    for i in range(30) :
+
         x.days+=1
         x.itemA.price_days(PRICE)
 
@@ -236,14 +300,13 @@ for j in range(2):
         x.itemC.price_days(PRICE)
 
         print("days",x.days)
+
         x.order()
-        for c in range(len(x.dc.producer)):
-            tempquantity =[]
-            for j in range(len(x.itemlist)): 
-                quantity = random.randint(0,9)
-                tempquantity.append(quantity)
-            
-            x.dc.order(tempquantity,c) 
+        
+        input_action = input('order ?')
+
+        x.dc.order(input_action) 
+
         temp =[]
         temp = temp+[x.days]
         for supply in range(len(x.dc.producer)):
@@ -266,7 +329,7 @@ for j in range(2):
         # print('sum',sum)           
         # for count in range(len(x.shop_1.order_queue)):
         #     temp = temp+x.shop_1.order_queue[count]
-        # print(temp)
+        # print('state',temp)
         # print(x.dc.producer[0].cap)
         # print(x.supplier_2.cap)
         # print(x.supplier_3.cap)
@@ -275,7 +338,8 @@ for j in range(2):
         # print(x.shop_3.order_queue) 
         x.process()
         x.response()
-        print(x.dc.profit)
+        print('reward',x.dc.profit)
+        
 
 
   
